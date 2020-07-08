@@ -1,1 +1,1 @@
-# single-cell-classification
+# scSemiCluster
