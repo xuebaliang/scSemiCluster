@@ -132,7 +132,7 @@ def ZINB(pi, theta, y_true, y_pred, ridge_lambda, mean = True, mask = False, deb
 
 
 class scSemiCluster(object):
-    def __init__(self, dataname, dims, cluster_num, alpha, beta, gamma, learning_rate,
+    def __init__(self, dataname, dims, batch_num, cluster_num, alpha, beta, gamma, learning_rate,
                  noise_sd=1.5, init='glorot_uniform', act='relu', mode="cdec", distrib = "ZINB", constraint = True):
         self.dataname = dataname
         self.dims = dims
@@ -150,7 +150,7 @@ class scSemiCluster(object):
 
         self.n_stacks = len(self.dims) - 1
         self.x = tf.placeholder(dtype=tf.float32, shape=(None, self.dims[0]))
-        self.batch = tf.placeholder(dtype=tf.float32, shape=(None, 2))
+        self.batch = tf.placeholder(dtype=tf.float32, shape=(None, batch_num))
         self.y = tf.placeholder(dtype=tf.float32, shape=(None, self.cluster_num))
         self.label_vec = tf.placeholder(dtype=tf.float32, shape=(None, ))
         self.mask_vec = tf.placeholder(dtype=tf.float32, shape=(None, ))
@@ -162,8 +162,7 @@ class scSemiCluster(object):
         self.label_mat = tf.reshape(self.label_vec, [-1, 1]) - tf.reshape(self.label_vec, [1, -1])
         self.label_mat = tf.cast(tf.equal(self.label_mat, 0.), tf.float32)
         self.mask_mat = tf.matmul(tf.reshape(self.mask_vec, [-1, 1]), tf.reshape(self.mask_vec, [1, -1]))
-
-        #self.h = self.x
+        
         self.h = tf.concat([self.x, self.batch], axis=1)
         self.h = GaussianNoise(self.noise_sd, name='input_noise')(self.h)
 
@@ -190,7 +189,6 @@ class scSemiCluster(object):
         elif self.mode == "dec":
             self.latent_dist1, self.latent_dist2 = dec(self.latent, self.clusters)
 
-        #self.h = self.latent
         self.h = tf.concat([self.latent, self.batch], axis=1)
         for i in range(self.n_stacks - 1, 0, -1):
             self.h = Dense(units=self.dims[i], activation=self.act, kernel_initializer=self.init, name='decoder_%d' % i)(self.h)
@@ -384,7 +382,7 @@ class scSemiCluster(object):
                                                "annotation cell type": test_annotation_label})
         t2 = time.time()
         print("The total consuming time for the whole model training is {}".format(t2 - t1))
-        return annotated_test_accuracy, test_ARI, test_prediction_matrix
+        return annotated_test_accuracy, test_ARI, test_prediction_matrix, latent_repre
 
 
 if __name__ == "__main__":
@@ -422,15 +420,17 @@ if __name__ == "__main__":
 
     result = []
     cluster_num = len(np.unique(cellname))
+    batch_num = len(np.unique(batch_label))
     tf.reset_default_graph()
-    scSemi = scSemiCluster(dataname, dims, cluster_num, 0.01, 0.1, 0.1, 1e-4, mode="cdec", distrib = "ZINB", constraint = True)
-    annotated_target_accuracy, target_ARI, target_prediction_matrix = scSemi.train(X, count_X, size_factor, cellname, batch_label,
-                                                                                   batch_size, random_seed, gpu_option)
+    scSemi = scSemiCluster(dataname, dims, batch_num, cluster_num, 0.01, 0.1, 0.1, 1e-4, mode="cdec", distrib = "ZINB", constraint = True)
+    annotated_target_accuracy, target_ARI, target_prediction_matrix, latent_representation = scSemi.train(X, count_X, size_factor, cellname, batch_label,
+                                                                                                          batch_size, random_seed, gpu_option)
     print("Under this setting, for target data, the clustering ARI is {}".format(target_ARI))
     print("Under this setting, for target data, the annotation accuracy is {}".format(annotated_target_accuracy))
     print("The target prediction information is in the target_prediction_matrix. It is a data frame, include four columns, "
           "they are true label, true cell type, cluster label, annotation cell type. You can save it in .csv file.")
     print(target_prediction_matrix)
+    print("You can use the latent_representation output to visualize the cell type and batch !!!")
 
 
 
