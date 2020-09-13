@@ -2,6 +2,7 @@
 Introduction
 -----
 The identification of cell types plays an essential rolein the analysis of scRNA-seq data, which, in turn, influences the discovery of regulatory genes that induceheterogeneity. Here, we propose a flexible single cell semi-supervised clustering and annotation framework, scSemiCluster. Notably, without explicit feature alignment and batch effect correction,  scSemiCluster outperforms other state-of-the-art, single-cell supervised classification and semi-supervised clustering annotation algorithms in both simulation and real data. In addition, scSemiCluster is suitable for cell annotation on single data and cross-data. 
+
 Requirement
 -----
 Python >= 3.6
