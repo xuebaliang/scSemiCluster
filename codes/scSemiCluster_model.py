@@ -150,6 +150,7 @@ class scSemiCluster(object):
 
         self.n_stacks = len(self.dims) - 1
         self.x = tf.placeholder(dtype=tf.float32, shape=(None, self.dims[0]))
+        self.batch = tf.placeholder(dtype=tf.float32, shape=(None, 2))
         self.y = tf.placeholder(dtype=tf.float32, shape=(None, self.cluster_num))
         self.label_vec = tf.placeholder(dtype=tf.float32, shape=(None, ))
         self.mask_vec = tf.placeholder(dtype=tf.float32, shape=(None, ))
@@ -162,7 +163,8 @@ class scSemiCluster(object):
         self.label_mat = tf.cast(tf.equal(self.label_mat, 0.), tf.float32)
         self.mask_mat = tf.matmul(tf.reshape(self.mask_vec, [-1, 1]), tf.reshape(self.mask_vec, [1, -1]))
 
-        self.h = self.x
+        #self.h = self.x
+        self.h = tf.concat([self.x, self.batch], axis=1)
         self.h = GaussianNoise(self.noise_sd, name='input_noise')(self.h)
 
         for i in range(self.n_stacks - 1):
@@ -188,7 +190,8 @@ class scSemiCluster(object):
         elif self.mode == "dec":
             self.latent_dist1, self.latent_dist2 = dec(self.latent, self.clusters)
 
-        self.h = self.latent
+        #self.h = self.latent
+        self.h = tf.concat([self.latent, self.batch], axis=1)
         for i in range(self.n_stacks - 1, 0, -1):
             self.h = Dense(units=self.dims[i], activation=self.act, kernel_initializer=self.init, name='decoder_%d' % i)(self.h)
 
