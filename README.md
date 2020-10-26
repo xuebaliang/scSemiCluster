@@ -27,6 +27,10 @@ After finishing the entire training, you can get that the annotation accuracy an
 
 ![model](https://github.com/xuebaliang/scSemiCluster/blob/master/data/result/simulation_visualization.png)
 
+Reference
+-----
+Our paper is published in Bioinformatics. The details can be seen in <a href="https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btaa908/5937858">article</a>. Please consider citing it.
+
 Contributing
 -----
 Author email: clandzyy@pku.edu.cn
